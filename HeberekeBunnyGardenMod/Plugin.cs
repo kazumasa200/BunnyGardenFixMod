@@ -6,12 +6,23 @@ using HarmonyLib;
 
 namespace BunnyGardenFixMod;
 
+public enum AntiAliasingType
+{
+    Off,
+    FXAA,
+    TAA,
+    MSAA2x,
+    MSAA4x,
+    MSAA8x,
+}
+
 [BepInPlugin(MyPluginInfo.PLUGIN_GUID, MyPluginInfo.PLUGIN_NAME, MyPluginInfo.PLUGIN_VERSION)]
 public class Plugin : BaseUnityPlugin
 {
     public static ConfigEntry<int> ConfigWidth;
     public static ConfigEntry<int> ConfigHeight;
     public static ConfigEntry<int> ConfigFrameRate;
+    public static ConfigEntry<AntiAliasingType> ConfigAntiAliasing;
 
     internal new static ManualLogSource Logger;
 
@@ -35,11 +46,18 @@ public class Plugin : BaseUnityPlugin
             60,
             "フレームレート上限を指定します。-1にすると上限を撤廃します。");
 
+        ConfigAntiAliasing = Config.Bind(
+            "AntiAliasing",
+            "AntiAliasingType",
+            AntiAliasingType.MSAA8x,
+            "アンチエイリアシングの種類を指定します。Off / FXAA / TAA / MSAA2x / MSAA4x / MSAA8x");
+
         // Plugin startup logic
         Logger = base.Logger;
         PatchLogger.Initialize(Logger);
         var harmony = new Harmony(MyPluginInfo.PLUGIN_GUID);
         harmony.PatchAll();
         PatchLogger.LogInfo($"解像度パッチを適用しました: {Plugin.ConfigWidth.Value}x{Plugin.ConfigHeight.Value}");
+        PatchLogger.LogInfo($"アンチエイリアシング設定: {Plugin.ConfigAntiAliasing.Value}");
     }
 }

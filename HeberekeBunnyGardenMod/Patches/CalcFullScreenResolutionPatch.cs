@@ -11,7 +11,7 @@ namespace BunnyGardenFixMod.Patches;
 [HarmonyPatch]
 public class CalcFullScreenResolutionPatch
 {
-    static MethodBase TargetMethod() =>
+    private static MethodBase TargetMethod() =>
         AccessTools.Method("GB.GBSystem:CalcFullScreenResolution");
 
     private static bool Prefix(ref ValueTuple<int, int, bool> __result)
@@ -26,13 +26,15 @@ public class CalcFullScreenResolutionPatch
 
         if (num4 > num3)
         {
-            num2 = Mathf.Min(num2, currentResolution.height);
+            // モニターがワイド: 縦を基準にアスペクト比を合わせる
+            // 設定解像度 > モニター解像度の場合はそのまま許可（スーパーサンプリング）
             num = (int)((float)num2 * num3);
             flag = false;
         }
         else if (num4 < num3)
         {
-            num = Mathf.Min(num, currentResolution.width);
+            // モニターが縦長: 横を基準にアスペクト比を合わせる
+            // 設定解像度 > モニター解像度の場合はそのまま許可（スーパーサンプリング）
             num2 = (int)((float)num / num3);
         }
 

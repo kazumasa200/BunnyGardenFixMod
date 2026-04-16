@@ -11,7 +11,7 @@ namespace BunnyGardenFixMod.Patches;
 [HarmonyPatch]
 public class SetRefreshRatePatch
 {
-    static MethodBase TargetMethod() =>
+    private static MethodBase TargetMethod() =>
         AccessTools.Method("GB.GBSystem:Setup");
 
     private static void Postfix()
