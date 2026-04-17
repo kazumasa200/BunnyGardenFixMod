@@ -1,5 +1,5 @@
 # BunnyGardenFixMod
-<img width="3839" height="2159" alt="image" src="https://github.com/user-attachments/assets/6ad0f502-037b-42dd-a276-f7b1f230e99e" />
+<img width="1920" height="1080" alt="image" src="https://github.com/user-attachments/assets/6ad0f502-037b-42dd-a276-f7b1f230e99e" />
 
 
 [バニーガーデン](https://store.steampowered.com/app/2654470/_/)(海外名:Bunny Garden)用の解像度修正やフレームレート上限変更などを行うBepInEx5用Modです。
