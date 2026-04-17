@@ -1,6 +1,9 @@
 ﻿using BepInEx;
 using BepInEx.Configuration;
 using BepInEx.Logging;
+#if BIE6
+using BepInEx.Unity.Mono;
+#endif
 using BunnyGardenFixMod.Utils;
 using HarmonyLib;
 
