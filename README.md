@@ -16,12 +16,12 @@
 - 内部解像度を指定することで画質を向上することができる。
 - 本来は60で固定されていたフレームレート制限を任意の値にするか、取り払うことができる。
 
-## 導入方法
+## 導入方法(Steam Deck対応)
 1. [Releases](https://github.com/kazumasa200/BunnyGardenFixMod/releases)から最新のzipファイルをダウンロードする。(BunnyGardeFixMod v1.0.4.zipみたいな感じ)ブラウザによってはブロックするかもしれないので注意。<br>例<img width="1522" height="610" alt="image" src="https://github.com/user-attachments/assets/d8dc6b24-b9d8-4cf3-8b24-6fce6c07a975" />
 <br>画像はV1.0.0の例です。導入時の最新バージョンを入れてください。
 1. [BepInEx5](https://github.com/bepinex/bepinex/releases)をダウンロードする。Windowsの場合は```BepInEx_win_x64_{バージョン名}.zip```をダウンロードする。
 1. ゲームのexeがあるディレクトリにBepInEx5の中身を展開。つまり、BUNNY GARDEN.exeとBepInExフォルダやdoorstop_configとかが同じ階層にある状態が正しいということ。<br>例<img width="1362" height="597" alt="image" src="https://github.com/user-attachments/assets/fc262c84-3954-48c5-a37f-bb29b08de2f3" />
-
+1. (Steam Deckの場合のみ実行) Steamでバニーガーデン → 右クリック → 「プロパティ」→「一般」→「起動オプション」に```WINEDLLOVERRIDES="winhttp=n,b" %command%```を入力。
 1. 一度ゲームを起動した後、[Releases](https://github.com/kazumasa200/Hebereke-Bunny-Garden-Fix-Mod/releases)からダウンロードしたZipを展開し、中にある```net.noeleve.BunnyGardenFixMod.dll```をBepinExフォルダの中にPluginsの中に入れる。<br>例<img width="1492" height="536" alt="image" src="https://github.com/user-attachments/assets/aaaa2519-19b4-4c20-bfb6-c33c8ff6423f" />
 
 
