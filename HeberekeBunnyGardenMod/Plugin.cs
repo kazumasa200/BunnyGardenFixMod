@@ -6,6 +6,8 @@ using BepInEx.Unity.Mono;
 #endif
 using BunnyGardenFixMod.Utils;
 using HarmonyLib;
+using UnityEngine;
+using UnityEngine.InputSystem;
 
 namespace BunnyGardenFixMod;
 
@@ -26,6 +28,11 @@ public class Plugin : BaseUnityPlugin
     public static ConfigEntry<int> ConfigHeight;
     public static ConfigEntry<int> ConfigFrameRate;
     public static ConfigEntry<AntiAliasingType> ConfigAntiAliasing;
+    public static ConfigEntry<Key> ConfigTimeStopKey;
+    public static ConfigEntry<Key> ConfigSlowMotionKey;
+    public static ConfigEntry<Key> ConfigFastForwardKey;
+    public static ConfigEntry<float> ConfigSlowMotionScale;
+    public static ConfigEntry<float> ConfigFastForwardSpeed;
 
     internal new static ManualLogSource Logger;
 
@@ -55,11 +62,28 @@ public class Plugin : BaseUnityPlugin
             AntiAliasingType.MSAA8x,
             "アンチエイリアシングの種類を指定します。Off / FXAA / TAA / MSAA2x / MSAA4x / MSAA8x");
 
+        ConfigTimeStopKey = Config.Bind(
+            "Time", "ToggleTimeStopKey", Key.T,
+            "時間停止をトグルするキー。");
+        ConfigSlowMotionKey = Config.Bind(
+            "Time", "ToggleSlowMotionKey", Key.Y,
+            "スロー再生をトグルするキー。");
+        ConfigFastForwardKey = Config.Bind(
+            "Time", "FastForwardKey", Key.G,
+            "押している間だけ早送りするキー。");
+        ConfigSlowMotionScale = Config.Bind(
+            "Time", "SlowMotionScale", 0.25f,
+            "スロー再生の速度（1.0 が通常速度）。小さいほどゆっくりになります。");
+        ConfigFastForwardSpeed = Config.Bind(
+            "Time", "FastForwardSpeed", 2.0f,
+            "早送りの速度（1.0 が通常速度）。大きいほど速くなります。");
+
         // Plugin startup logic
         Logger = base.Logger;
         PatchLogger.Initialize(Logger);
         var harmony = new Harmony(MyPluginInfo.PLUGIN_GUID);
         harmony.PatchAll();
+        Patches.TimeController.Initialize(gameObject);
         PatchLogger.LogInfo($"解像度パッチを適用しました: {Plugin.ConfigWidth.Value}x{Plugin.ConfigHeight.Value}");
         PatchLogger.LogInfo($"アンチエイリアシング設定: {Plugin.ConfigAntiAliasing.Value}");
     }

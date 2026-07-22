@@ -76,5 +76,9 @@
       <HintPath>Assembly\UnityEngine.UI.dll</HintPath>
       <Private>false</Private>
     </Reference>
+    <Reference Include="Unity.InputSystem">
+      <HintPath>Assembly\Unity.InputSystem.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
   </ItemGroup>
 </Project>
