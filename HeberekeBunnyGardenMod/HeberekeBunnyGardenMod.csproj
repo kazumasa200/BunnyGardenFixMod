@@ -68,5 +68,13 @@
     <Reference Include="Unity.RenderPipelines.Universal.Runtime">
       <HintPath>Assembly\Unity.RenderPipelines.Universal.Runtime.dll</HintPath>
     </Reference>
+    <Reference Include="Unity.TextMeshPro">
+      <HintPath>Assembly\Unity.TextMeshPro.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="UnityEngine.UI">
+      <HintPath>Assembly\UnityEngine.UI.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
   </ItemGroup>
 </Project>
