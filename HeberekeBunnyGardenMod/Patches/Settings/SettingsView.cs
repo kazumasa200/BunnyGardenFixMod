@@ -90,6 +90,14 @@ public class SettingsView : MonoBehaviour
     private void BuildPanel()
     {
         m_root = m_doc.rootVisualElement;
+
+        // Unity 2022.3: unityFont(レガシー)指定は効かないため、TextCore FontAsset を
+        // root の unityFontDefinition に設定する（子要素へ継承され、日本語も描画される）。
+        if (UITRuntime.TryGetJapaneseFontDefinition(out var jpFontDef))
+            m_root.style.unityFontDefinition = jpFontDef;
+        else
+            PatchLogger.LogWarning("[SettingsView] OS 日本語フォントの FontAsset 生成に失敗（英字のみ表示の可能性）");
+
         m_root.style.position = Position.Absolute;
         m_root.style.right = 16;
         m_root.style.top = 20;

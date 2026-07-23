@@ -32,12 +32,6 @@ public class Plugin : BaseUnityPlugin
 
     internal static event Action GUICallback;
 
-    private Patches.FreeCamera.FreeCameraManager freeCamera;
-    private bool isOverlayVisible = true;
-    private bool isCapturingScreenshot;
-    private static float suppressGameInputUntilUnscaledTime = -1f;
-    private const float ControllerShortcutSuppressDuration = 0.18f;
-
     private static readonly string ScreenshotDirectory = Path.Combine(Paths.BepInExRootPath, "screenshots",
         MyPluginInfo.PLUGIN_GUID);
 
@@ -55,15 +49,12 @@ public class Plugin : BaseUnityPlugin
 
         Patches.Settings.SettingsCollapseState.Init(Config);
 
-        if (Configs.UpdateCheck.Value)
-            StartCoroutine(UpdateChecker.Check());
-
         var harmony = new Harmony(MyPluginInfo.PLUGIN_GUID);
         harmony.PatchAll();
 
-        Patches.Settings.SettingsController.Initialize(gameObject);
-        freeCamera = Patches.FreeCamera.FreeCameraManager.Initialize(gameObject);
-        Patches.TimeController.Initialize(gameObject);
+        // 注意: バニーガーデン1本体は起動時に MOD 外部の GameObject を破棄するため、
+        // MOD コンポーネントの生成はここではなく、ゲーム永続 GO(GBSystem) が用意された後
+        // （GBSystem.Setup の Postfix = ModInitPatch）に InitializeGameObjects で行う。
 
         PatchLogger.LogInfo($"プラグイン起動: {MyPluginInfo.PLUGIN_GUID} v{MyPluginInfo.PLUGIN_VERSION}");
         PatchLogger.LogInfo($"解像度パッチを適用しました: {Configs.Width.Value}x{Configs.Height.Value}");
@@ -76,39 +67,63 @@ public class Plugin : BaseUnityPlugin
             Instance = null;
     }
 
-    private void Update()
+    /// <summary>
+    /// MOD の毎フレーム処理コンポーネントを、ゲーム所有の永続 GameObject に載せる。
+    /// プラグイン GO は本体に破棄されるため、必ずゲーム側 GO を host に渡すこと。
+    /// GBSystem.Setup の Postfix から呼ばれる。二重付与は host 上の ModDriver 有無で防ぐ。
+    /// </summary>
+    internal static void InitializeGameObjects(GameObject host)
     {
-        if (Keyboard.current?[Key.F4].wasPressedThisFrame == true)
-            Config.Reload();
-
-        if (Configs.OverlayToggle.IsTriggered())
-            ToggleOverlay();
-
-        if (Configs.CaptureScreenshot.IsTriggered())
-            CaptureScreenshot();
-    }
-
-    private void OnGUI()
-    {
-        if (!isOverlayVisible || isCapturingScreenshot)
+        if (host == null || host.GetComponent<Patches.ModDriver>() != null)
             return;
 
-        GUILayout.BeginArea(new Rect(10, 10, Screen.width / 2, Screen.height - 10));
-        GUICallback?.Invoke();
-        GUILayout.EndArea();
+        // 注意: プラグイン GO は本体に破棄され Plugin.Instance は null になっている
+        // 可能性が高い。ここでは Plugin.Instance に依存せず初期化すること
+        // （依存すると FreeCameraManager だけ生成されないバグが再発する）。
+        host.AddComponent<Patches.ModDriver>();
+        Patches.Settings.SettingsController.Initialize(host);
+        Patches.FreeCamera.FreeCameraManager.Initialize(host);
+        Patches.TimeController.Initialize(host);
+
+        PatchLogger.LogInfo($"MOD コンポーネントをゲーム永続GO({host.name})へ初期化しました");
+    }
+
+    internal static void ReloadConfig() => Instance?.Config.Reload();
+
+    internal static void InvokeGUICallback() => GUICallback?.Invoke();
+
+    internal static void SaveScreenshot()
+    {
+        Directory.CreateDirectory(ScreenshotDirectory);
+        string path = Path.Combine(ScreenshotDirectory, $"bg1_{DateTime.Now:yyyyMMdd_HHmmss_fff}.png");
+        ScreenCapture.CaptureScreenshot(path, Configs.ScreenshotScale.Value);
+        PatchLogger.LogInfo($"スクリーンショットを保存しました: {path}");
     }
 
     internal static void DisableFreeCamForSystemUiIfNeeded(string reason)
     {
-        Instance?.freeCamera?.Deactivate();
+        // Plugin.Instance はプラグイン GO ごと破棄されるため、FreeCameraManager 側の
+        // static Instance を経由する。
+        var freeCam = Patches.FreeCamera.FreeCameraManager.Instance;
+        if (freeCam == null || !Patches.FreeCamera.FreeCameraManager.IsActive)
+            return;
+
+        freeCam.Deactivate();
         PatchLogger.LogInfo($"フリーカメラを自動解除しました: {reason}");
     }
 
+    /// <summary>
+    /// 一定時間 (0.18 秒) ゲーム本体側の入力およびホットキー判定を抑止する。
+    /// </summary>
     public static void SuppressGameInputTemporarily()
     {
         suppressGameInputUntilUnscaledTime = Time.unscaledTime + ControllerShortcutSuppressDuration;
     }
 
+    private static float suppressGameInputUntilUnscaledTime = -1f;
+    private const float ControllerShortcutSuppressDuration = 0.18f;
+
+    /// <summary>SuppressGameInputTemporarily 期間中なら true。</summary>
     internal static bool ShouldSuppressGameInput()
     {
         return Time.unscaledTime < suppressGameInputUntilUnscaledTime;
@@ -123,7 +138,7 @@ public class Plugin : BaseUnityPlugin
     {
         try
         {
-            var env = GBSystem.Instance?.GetActiveEnvScene();
+            var env = GBSystem.Instance != null ? GBSystem.Instance.GetActiveEnvScene() : null;
             if (env != null)
             {
                 var envCam = env.GetComponentInChildren<Camera>();
@@ -148,40 +163,20 @@ public class Plugin : BaseUnityPlugin
         Logger.LogInfo($"代替カメラを使用: {cam.name}");
         return cam;
     }
+}
 
-    private void ToggleOverlay()
+/// <summary>
+/// ゲーム永続 GO(GBSystem) の準備完了後に MOD コンポーネントを載せる。
+/// プラグイン GO は本体に破棄されるため、ゲーム側 GO へ載せ替えるのが要。
+/// </summary>
+[HarmonyPatch(typeof(GBSystem), "Setup")]
+public static class ModInitPatch
+{
+    private static void Postfix()
     {
-        isOverlayVisible = !isOverlayVisible;
-        PatchLogger.LogInfo($"表示: {(isOverlayVisible ? "ON" : "OFF")}");
-    }
-
-    private void CaptureScreenshot()
-    {
-        StartCoroutine(CaptureScreenshotCoroutine());
-    }
-
-    private System.Collections.IEnumerator CaptureScreenshotCoroutine()
-    {
-        Camera captureCam = FindCurrentCamera();
-        if (captureCam == null)
-            yield break;
-
-        isCapturingScreenshot = true;
-
-        try
-        {
-            Directory.CreateDirectory(ScreenshotDirectory);
-            string path = Path.Combine(ScreenshotDirectory, $"bg1_{DateTime.Now:yyyyMMdd_HHmmss_fff}.png");
-            ScreenCapture.CaptureScreenshot(path, Configs.ScreenshotScale.Value);
-            PatchLogger.LogInfo($"スクリーンショットを保存しました: {path}");
-        }
-        catch (Exception ex)
-        {
-            PatchLogger.LogError($"スクリーンショット保存失敗: {ex.Message}");
-        }
-
-        yield return null;
-        isCapturingScreenshot = false;
+        var host = GBSystem.Instance != null ? GBSystem.Instance.gameObject : null;
+        if (host != null)
+            Plugin.InitializeGameObjects(host);
     }
 }
 

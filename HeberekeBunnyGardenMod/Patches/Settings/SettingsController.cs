@@ -15,9 +15,9 @@ public class SettingsController : MonoBehaviour
 
     public static void Initialize(GameObject parent)
     {
-        var host = new GameObject("BG2SettingsController");
-        UnityEngine.Object.DontDestroyOnLoad(host);
-        host.AddComponent<SettingsController>();
+        // バニーガーデン1本体は MOD 外部の GameObject を破棄するため、
+        // 独自 GO ではなくゲーム所有の永続 GO(parent) にコンポーネントを載せる。
+        parent.AddComponent<SettingsController>();
     }
 
     private SettingsView m_view;

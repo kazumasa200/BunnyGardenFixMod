@@ -19,6 +19,8 @@ namespace BunnyGardenFixMod.Patches.FreeCamera;
 /// </summary>
 public class FreeCameraManager : MonoBehaviour
 {
+    public static FreeCameraManager Instance { get; private set; }
+
     public static bool IsActive { get; private set; } = false;
     public static bool IsFixed { get; private set; } = false;
 
@@ -32,7 +34,11 @@ public class FreeCameraManager : MonoBehaviour
     private bool isGameUiSuppressed;
 
     public static FreeCameraManager Initialize(GameObject parent)
-        => parent.AddComponent<FreeCameraManager>();
+    {
+        var mgr = parent.AddComponent<FreeCameraManager>();
+        Instance = mgr;
+        return mgr;
+    }
 
     private void OnEnable()
     {

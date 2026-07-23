@@ -39,14 +39,14 @@ public static class UITRuntime
             return settings;
         }
 
-        // uGUI 専用ゲーム（UI Toolkit 未使用）ではロード済み ThemeStyleSheet が存在しないことがある。
-        // themeStyleSheet が null のままだと Unity が "UI will not render properly" を出し描画が崩れるため、
-        // 空の ThemeStyleSheet を生成して割り当てる。UITKit の各要素はインラインスタイルで色・寸法を
-        // 明示指定しているため、空テーマでも実用上の描画は維持される想定。
-        var fallback = ScriptableObject.CreateInstance<ThemeStyleSheet>();
-        fallback.name = "HBGFallbackRuntimeTheme";
-        settings.themeStyleSheet = fallback;
-        Debug.Log("[UITRuntime] ロード済みの ThemeStyleSheet が見つからないため空テーマで代替します（uGUI ゲーム想定）");
+        // uGUI 専用ゲーム（UI Toolkit 未使用）ではロード済み ThemeStyleSheet が存在しない。
+        // 注意: ScriptableObject.CreateInstance<ThemeStyleSheet>() で「空テーマ」を作って割り当てると、
+        // 内部のセレクタ参照テーブルが未初期化のため、スタイル適用パス
+        // (VisualTreeStyleUpdater.ApplyStyles → StyleSelectorHelper.FastLookup) が毎フレーム
+        // NullReferenceException で失敗し、インラインスタイルすら反映されなくなる（実測）。
+        // UITKit は全スタイルをインラインで指定しているため、テーマは null のままにするのが正しい
+        // （Unity が "No Theme Style Sheet" 警告を 1 度出すだけで描画は正常に行われる）。
+        Debug.Log("[UITRuntime] ロード済みの ThemeStyleSheet が見つからないため無テーマで動作します（uGUI ゲーム想定）");
 
         return settings;
     }
@@ -81,6 +81,34 @@ public static class UITRuntime
         if (loose != null) return loose;
 
         return Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
+    }
+
+    /// <summary>
+    /// Unity 2022.3 の UI Toolkit ランタイムでは、style.unityFont（レガシー Font）指定は
+    /// unityFontDefinition より優先度が低く、動的 OS Font の内部変換も安定しない
+    /// （日本語どころか全文字が豆腐になり得る）。TextCore の FontAsset を OS フォント
+    /// ファミリー名から直接生成し、root の unityFontDefinition に設定するのが確実
+    /// （FontDefinition は unityFont に優先し、子要素へ継承される）。
+    /// </summary>
+    public static bool TryGetJapaneseFontDefinition(out FontDefinition def)
+    {
+        string[] families = { "Yu Gothic UI", "Yu Gothic", "Meiryo", "MS Gothic", "Noto Sans CJK JP", "Noto Sans JP" };
+        foreach (var family in families)
+        {
+            try
+            {
+                var fa = UnityEngine.TextCore.Text.FontAsset.CreateFontAsset(family, "Regular", 90);
+                if (fa != null)
+                {
+                    Debug.Log($"[UITRuntime] OS フォントから FontAsset を生成: {family}");
+                    def = FontDefinition.FromSDFFont(fa);
+                    return true;
+                }
+            }
+            catch { /* 次の候補へ */ }
+        }
+        def = default;
+        return false;
     }
 
     /// <summary>
