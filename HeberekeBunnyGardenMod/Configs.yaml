@@ -78,7 +78,7 @@
     - name: Speed
       label: 移動速度
       type: float
-      default: 5
+      default: 2.5
       range: [0.5, 60.0]
       description: フリーカメラの通常移動速度。
       ui:
@@ -89,7 +89,7 @@
     - name: FastSpeed
       label: 高速移動速度 (Shift / R)
       type: float
-      default: 15
+      default: 10
       range: [2.0, 120.0]
       description: Shift 押下中またはコントローラ R 押下中の移動速度。
       ui:
@@ -100,7 +100,7 @@
     - name: SlowSpeed
       label: 低速移動速度 (Ctrl / L)
       type: float
-      default: 1.5
+      default: 0.5
       range: [0.05, 10.0]
       description: Ctrl 押下中またはコントローラ L 押下中の移動速度。
       ui:

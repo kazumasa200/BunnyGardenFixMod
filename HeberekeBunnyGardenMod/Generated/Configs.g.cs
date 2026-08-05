@@ -94,21 +94,21 @@ Off / FXAA / TAA / MSAA2x / MSAA4x / MSAA8x。
                 new AcceptableValueRange<float>(0.05f, 30.0f)));
 
         Speed = cfg.Bind("Camera", "Speed",
-            5.0f,
+            2.5f,
             new ConfigDescription(
                 @"移動速度
 フリーカメラの通常移動速度。",
                 new AcceptableValueRange<float>(0.5f, 60.0f)));
 
         FastSpeed = cfg.Bind("Camera", "FastSpeed",
-            15.0f,
+            10.0f,
             new ConfigDescription(
                 @"高速移動速度 (Shift / R)
 Shift 押下中またはコントローラ R 押下中の移動速度。",
                 new AcceptableValueRange<float>(2.0f, 120.0f)));
 
         SlowSpeed = cfg.Bind("Camera", "SlowSpeed",
-            1.5f,
+            0.5f,
             new ConfigDescription(
                 @"低速移動速度 (Ctrl / L)
 Ctrl 押下中またはコントローラ L 押下中の移動速度。",

@@ -24,9 +24,9 @@
 | キー | デフォルト | 説明 |
 |------|-----------|------|
 | `Sensitivity` | `2` | マウス感度<br>フリーカメラの視点移動の感度。 |
-| `Speed` | `5` | 移動速度<br>フリーカメラの通常移動速度。 |
-| `FastSpeed` | `15` | 高速移動速度 (Shift / R)<br>Shift 押下中またはコントローラ R 押下中の移動速度。 |
-| `SlowSpeed` | `1.5` | 低速移動速度 (Ctrl / L)<br>Ctrl 押下中またはコントローラ L 押下中の移動速度。 |
+| `Speed` | `2.5` | 移動速度<br>フリーカメラの通常移動速度。 |
+| `FastSpeed` | `10` | 高速移動速度 (Shift / R)<br>Shift 押下中またはコントローラ R 押下中の移動速度。 |
+| `SlowSpeed` | `0.5` | 低速移動速度 (Ctrl / L)<br>Ctrl 押下中またはコントローラ L 押下中の移動速度。 |
 | `ControllerEnabled` | `true` | フリーカメラ操作にゲームパッドを使用 |
 | `ControllerTriggerDeadzone` | `0.35` | コントローラ ZL/ZR デッドゾーン<br>ZL/ZR を押下扱いにするしきい値。トリガーの遊びやドリフトがある場合に上げてください。 |
 | `HideGameUiInFreeCam` | `true` | フリーカメラ中にゲーム本体の UI を隠す<br>OFF にするとフリーカメラ中もゲーム UI を表示したままにします。 |
