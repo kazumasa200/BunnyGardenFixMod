@@ -1,5 +1,6 @@
 using BepInEx.Configuration;
 using BunnyGardenFixMod.Patches.Settings;
+using BunnyGardenFixMod.Patches;
 using UnityEngine.InputSystem;
 
 #nullable enable
@@ -89,7 +90,7 @@ public class HotkeyConfig
         if (ButtonConfig != null &&
             IsControllerComboTriggered(Configs.ControllerModifier.Value, ButtonConfig.Value))
         {
-            Plugin.SuppressGameInputTemporarily();
+            InputGate.ArmPadGrace();
             return true;
         }
 

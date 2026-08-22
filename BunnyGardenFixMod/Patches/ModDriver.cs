@@ -16,7 +16,7 @@ namespace BunnyGardenFixMod.Patches;
 public class ModDriver : MonoBehaviour
 {
     private bool isOverlayVisible = true;
-    private bool isCapturingScreenshot;
+    private bool hideOverlayForShot;
 
     private void Start()
     {
@@ -27,7 +27,8 @@ public class ModDriver : MonoBehaviour
 
     private void Update()
     {
-        if (Keyboard.current?[Key.F4].wasPressedThisFrame == true)
+        var kb = Keyboard.current;
+        if (kb != null && kb[Key.F4].wasPressedThisFrame)
             Plugin.ReloadConfig();
 
         if (Configs.OverlayToggle.IsTriggered())
@@ -37,12 +38,12 @@ public class ModDriver : MonoBehaviour
         }
 
         if (Configs.CaptureScreenshot.IsTriggered())
-            StartCoroutine(CaptureScreenshotCoroutine());
+            StartCoroutine(CaptureScreenshotRoutine());
     }
 
     private void OnGUI()
     {
-        if (!isOverlayVisible || isCapturingScreenshot)
+        if (!isOverlayVisible || hideOverlayForShot)
             return;
 
         GUILayout.BeginArea(new Rect(10, 10, Screen.width / 2, Screen.height - 10));
@@ -50,25 +51,24 @@ public class ModDriver : MonoBehaviour
         GUILayout.EndArea();
     }
 
-    private IEnumerator CaptureScreenshotCoroutine()
+    private IEnumerator CaptureScreenshotRoutine()
     {
-        Camera captureCam = Plugin.FindCurrentCamera();
-        if (captureCam == null)
-            yield break;
-
-        isCapturingScreenshot = true;
-
-        try
+        if (Plugin.FindCurrentCamera() != null)
         {
-            Plugin.SaveScreenshot();
-        }
-        catch (Exception ex)
-        {
-            PatchLogger.LogError($"スクリーンショット保存失敗: {ex.Message}");
-        }
+            // オーバーレイを写り込ませないため、保存が終わる翌フレームまで隠す
+            hideOverlayForShot = true;
 
-        // スクショがキャプチャされる前にオーバーレイを再表示しないよう 1 フレーム待機
-        yield return null;
-        isCapturingScreenshot = false;
+            try
+            {
+                Plugin.SaveScreenshot();
+            }
+            catch (Exception e)
+            {
+                PatchLogger.LogError($"スクリーンショット保存失敗: {e.Message}");
+            }
+
+            yield return null;
+            hideOverlayForShot = false;
+        }
     }
 }
